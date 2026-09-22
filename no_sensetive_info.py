@@ -90,26 +90,24 @@ class NSIPlugin(BasePlugin):
         pass
 
     def on_plugin_unload(self):
-        self.verify_message_text()
+        self.verify_msg_text()
     
-    def find_matches(self) -> list[str]:
-        patterns = []
-
-        for raw in raw_filters:
-            if not raw:
-                continue
-
-            patterns.extend(
-                part.strip()
-                for part in raw.split("|")
-                if part.strip()
-            )
-
-        return [
-            pattern
-            for pattern in patterns
-            if pattern.casefold() in text.casefold()
+    def verify_msg_text(self) -> None:
+        filters = [
+            self.get_setting("name_filters_key"),
+            self.get_setting("phone_filters_key"),
+            self.get_setting("address_filters_key"),
+            self.get_setting("email_filters_key"),
+            self.get_setting("ip_filters_key"),
+            self.get_setting("domain_filters_key"),
+            self.get_setting("nicknames_filters_key"),
+            self.get_setting("music_filters_key"),
+            self.get_setting("other_filters_key"),
         ]
+        self.log(filters)
+        for filter in filters:
+            pattern = re.compile(f"*{filter}*")
+            self.log(f"{re.search(pattern)} detected")
 
     def create_settings(self) -> List[Any]:
         return [
@@ -159,7 +157,7 @@ class NSIPlugin(BasePlugin):
             Input(key="address_filters_key",text="Address Filter",default="green st|red st"),
             Input(key="email_filters_key",text="Email Filter", default="john@williams.me|mygoogle@gmail.com"),
             Input(key="ip_filters_key",text="IP Filter", default="1.2.3.4"),
-            Input(key="domain_filters_key",text="Domain Filter",default="williams.me|john.williams.me|turn.williams.me"),
+            Input(key="domain_filters_key",text="Domain Filter",default="*williams.me||private.filter.com"),
             Input(key="nicknames_filters_key",text="Nickname Filter",default="heresjohnny|famous_nickname228"),
             Input(key="music_filters_key",text="Music Filter", default="metallica|dora"),
             Input(key="other_filters_key",text="Other Filters", default="etg|ayugram|ayu||exteragram|"),
@@ -172,6 +170,6 @@ class NSIPlugin(BasePlugin):
             EditText(key="image_model_api_key",hint="Enter api key for image processing"),
             EditText(key="audio_model_api_key",hint="Enter api key for voice message processing"),
             EditText(key="video_model_api_key",hint="Enter api key for video processing"),
-            Text(text="Test regex", on_click=self.verify_message_text)
+            Text(text="Test regex", on_click=self.verify_msg_text)
             
         ]
